@@ -1,0 +1,17 @@
+{% extends "layout.html" %}
+{% block content %}
+    <h2>Searched Results</h2>
+    {% for post in posts %}
+    <article class="media content-section">
+        <div class="media-body">
+        <div class="article-metadata">
+
+          <small class="text-muted">{{ post.date_posted.strftime('%Y-%m-%d') }}</small>
+        </div>
+        <h3><a class="article-title" href="{{ url_for('post', post_id=post.id) }}">{{ post.title }}</a></h3>
+        <p class="article-content">{{ post.content[0:54] | safe }}.....</p>
+      </div>
+    </article>
+    {% endfor %}
+
+{% endblock %}

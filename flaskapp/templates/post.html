@@ -1,0 +1,144 @@
+{% extends "layout.html" %}
+{% block content %}
+
+  <article class="media content-section">
+    <img class="rounded-circle article-img" src="{{ url_for('static', filename='profile_pics/' + post.author.image_file) }}">
+    <div class="media-body">
+      <div class="article-metadata">
+        <a class="mr-2" href="{{ url_for('user_posts', username=post.author.username) }}">{{ post.author.username }}</a>
+        <small class="text-muted">{{ post.date_posted.strftime('%Y-%m-%d') }}</small>
+        {% if post.author == current_user %}
+          <div>
+            <a class="btn btn-secondary btn-sm mt-1 mb-1" href="{{ url_for('update_post', post_id=post.id) }}">Update</a>
+            <button type="button" class="btn btn-danger btn-sm m-1" data-toggle="modal" data-target="#deleteModal">Delete</button>
+          </div>
+        {% endif %}
+      </div>
+      <h2 class="article-title">{{ post.title }}</h2>
+      <p class="article-content">{{ post.content|safe }}</p>
+    </div>
+  </article>
+
+  <!--Comment Display Section-->
+    <div class="container border">
+      <h2 class="mb-3 ml-2 "><small class="pull-right font-weight-normal">{{ post.comments.count() }} Comments</small></h2><hr>
+        {% if not current_user.is_authenticated %}
+          <h3 class="mb-3 ml-2 border text-center pb-2"><small class="pull-right">Please <a class='btn btn-info btn-sm' href="{{ url_for('login') }}">Login</a> to comment</small></h3>
+        {% endif %}
+        {% for comment in comments %}
+          {% if comment.post == post %}
+          <div class="page-header">
+
+          </div>
+           <div class="comments-list">
+               <div class="media">
+                <img class="rounded-circle article-img mt-1" src="{{ url_for('static', filename='profile_pics/' + comment.author.image_file) }}">
+                <div class="media-body mr-2">
+                <h5 class="media-heading user_name">{{ comment.author.username }}</h5>
+                <small class="border">{{ comment.date_commented.date() }}</small><br>
+                {{ comment.content|safe }}
+                <p>
+                  <small>
+                    <a href="{{ url_for('reply_comment', post_id=post.id, comment_id=comment.id )}}">Reply</a>
+                    {% if comment.author == current_user %} - <a href="{{ url_for('edit_comment', post_id=post.id, comment_id=comment.id) }}">Edit</a> -
+                    <a href="{{ url_for('delete_comment', post_id=post.id, comment_id=comment.id) }}">Delete</a>{% endif %}
+                </small>
+                </p>
+
+
+                <!--Reply Display Section-->
+                <div class="container">
+                  {% if comment.replies.count() > 0 %}
+                  <p class="pull-right font-weight-normal">{{ comment.replies.count() }} Replies</p>
+                    {% endif %}
+                    {% for reply in replies %}
+                      {% if reply.comment == comment %}
+
+                       <div class="comments-list">
+                           <div class="media">
+                               <img class="rounded-circle article-img mt-1" src="{{ url_for('static', filename='profile_pics/' + reply.author.image_file) }}">
+                            <div class="media-body mr-2">
+                            <h5 class="media-heading user_name">{{ reply.author.username }}</h5>
+                            <small class="border">{{ reply.date_replied.date() }}</small><br>
+                            {{ reply.content|safe }}
+                            <p>
+                              <small>
+                                <a href="{{ url_for('reply_comment', post_id=post.id, comment_id=comment.id )}}">Reply</a>
+                                {% if reply.author == current_user %} - <a href="{{ url_for('edit_comment_reply', post_id=post.id, comment_id=comment.id, reply_id=reply.id) }}">Edit</a> -
+                                <a href="{{ url_for('delete_comment_reply', post_id=post.id, reply_id=reply.id) }}">Delete</a>{% endif %}</a>
+                              </small>
+                            </p>
+                            </div>
+                        </div>
+                      </div>
+                    {% endif %}
+                  {% endfor %}
+                  </div>
+
+
+
+                </div>
+            </div>
+          </div>
+        {% endif %}
+      {% endfor %}
+      </div>
+
+      <br>
+    {% if current_user.is_authenticated %}
+  <!--Comment Section Form-->
+    <div class="content-section">
+    <form method="post" action="">
+      {{ form.hidden_tag() }}
+      <fieldset class="form-group">
+       <div class="form-group">
+          {{ form.comment.label(class="form-control-label") }}
+          {% if form.comment.errors %}
+            {{ form.comment(class="form-control form-control-md is-invalid") }}
+            <div class="invalid-feedback">
+              {% for error in form.comment.errors %}
+                <span>
+                  {{ error }}
+                </span>
+              {% endfor %}
+
+            </div>
+          {% else %}
+            {{ form.comment(class="form-control form-control-md") }}
+          {% endif %}
+        </div>
+        <div class="form-group">
+        {{ form.submit(class="btn btn-outline-info btn-sm") }}
+        </div>
+      </fieldset>
+    </form>
+  </div>
+  {% endif %}
+
+    <!-- Modal -->
+  <div class="modal fade" id="deleteModal" tabindex="-1" role="dialog" aria-labelledby="deleteModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="deleteModalLabel">Delete Post?</h5>
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+          <form action="{{ url_for('delete_post', post_id=post.id) }}" method="POST">
+            <input class="btn btn-danger" type="submit" value="Delete">
+          </form>
+
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+
+
+
+{% endblock content %}
